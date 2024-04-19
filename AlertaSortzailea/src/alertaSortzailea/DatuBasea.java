@@ -1,6 +1,7 @@
 package alertaSortzailea;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
@@ -35,5 +36,22 @@ public class DatuBasea {
             e.printStackTrace();
         }
     }
-}
+    
+    // Método para ejecutar una consulta SQL y devolver el ResultSet
+    public static ResultSet executeQuery(String query) throws SQLException {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = Konexioa.getConnection();
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery(query);
+        } finally {
+            // Cerrar el statement y la conexión aquí o en el método que llama a este
+        }
+        return resultSet;
+    }
+            
+         
+    }
 
