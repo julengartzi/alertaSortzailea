@@ -1,0 +1,149 @@
+package alertaSortzailea;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.Date;
+
+/**
+ * Alerta-erregistro berri bat sartzeko klasea.
+ */
+public class erregistroaSartu extends JFrame {
+    private JTextField textgaia, textdeskripzioa, txtnorentzako;
+    private JSpinner dataSpinner, orduaSpinner;
+    private JCheckBox errepikakorraBox;
+
+    /**
+     * Klasearen eraikitzailea
+     */
+    public erregistroaSartu() {
+        setTitle("Alerta Sortu");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(600, 500);
+        setLayout(new GridLayout(8, 2));
+        setLocationRelativeTo(null);
+
+        // Formularioaren elementuak
+        JLabel gaiaLabel = new JLabel("Gaia:");
+        gaiaLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        textgaia = new JTextField();
+
+        JLabel deskripziaLabel = new JLabel("Deskripzioa:");
+        deskripziaLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        textdeskripzioa = new JTextField();
+
+        JLabel norentzakoLabel = new JLabel("<html><body><p style='text-align: center;'>Norentzako:</p><br><p style='text-align: center; font-size: 7px;'>Jasotzaile multiplentzako idatzi hutsunerik gabe eta ; erabiliz)</p></body></html>");
+        norentzakoLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        txtnorentzako = new JTextField();
+
+        JLabel dataLabel = new JLabel("Data:");
+        dataLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        dataSpinner = new JSpinner(new SpinnerDateModel());
+        JSpinner.DateEditor fechaEditor = new JSpinner.DateEditor(dataSpinner, "dd/MM/yyyy");
+        dataSpinner.setEditor(fechaEditor);
+
+        JLabel orduaLabel = new JLabel("Ordua:");
+        orduaLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        orduaSpinner = new JSpinner(new SpinnerDateModel());
+        JSpinner.DateEditor horaEditor = new JSpinner.DateEditor(orduaSpinner, "HH:mm");
+        orduaSpinner.setEditor(horaEditor);
+        
+        JLabel errepikakorraLabel = new JLabel("Errepikakorra:");
+        errepikakorraLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        errepikakorraBox = new JCheckBox();
+        errepikakorraBox.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        JLabel maiztasunaLabel = new JLabel("Maiztasuna:");
+        maiztasunaLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        JButton bidaliBotoia = new JButton("Bidali");
+        bidaliBotoia.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                datuakJaso();
+            }
+        });
+
+        // Erantsi osagaiak formularioari
+        add(norentzakoLabel);
+        add(txtnorentzako);
+        add(gaiaLabel);
+        add(textgaia);
+        add(deskripziaLabel);
+        add(textdeskripzioa);
+        add(dataLabel);
+        add(dataSpinner);
+        add(orduaLabel);
+        add(orduaSpinner);
+        add(errepikakorraLabel);
+        add(errepikakorraBox);
+        add(maiztasunaLabel);
+        add(new JLabel());
+        add(bidaliBotoia);
+        setVisible(true);
+    }
+
+    /**
+     * Sartutako datuak prozesatzeko eta datu-basera bidaltzeko metodoa.
+     */
+    private void datuakJaso() {
+        String gaia = textgaia.getText();
+        String deskribapena = textdeskripzioa.getText();
+        String jasotzailea = txtnorentzako.getText().trim(); // Hasieran eta amaieran zuriuneak ezabatu
+        Date data = (Date) dataSpinner.getValue();
+        Date ordua = (Date) orduaSpinner.getValue();
+
+        // Eremu guztiak beteta daudela egiaztatu
+        if (gaia.isEmpty() || deskribapena.isEmpty() || jasotzailea.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Mesedez, bete eremu guztiak.", "Errorea", JOptionPane.ERROR_MESSAGE);
+            return; // 
+        }
+
+        // Baliozkotu hainbat mezu elektroniko sartu diren eta puntu eta komaz bereizita dauden
+        if (jasotzailea.contains(";")) {
+            // Banatu mezu elektronikoak array batean
+            String[] mezuak = jasotzailea.split(";");
+
+            // Posta elektroniko bakoitza baliozkoa dela egiaztatzea
+            for (String mezua : mezuak) {
+            	mezua = mezua.trim();
+                if (!isValidEmail(mezua)) {
+                    JOptionPane.showMessageDialog(this, "Sartu duzun korreo elektronikoaren formatua ez da zuzena: " + mezua, "Errorea", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+        } else {
+        	//Email bakarra den kasuan
+            if (!isValidEmail(jasotzailea)) {
+                JOptionPane.showMessageDialog(this, "Sartu duzun korreo elektronikoaren formatua ez da zuzena: " + jasotzailea, "Errorea", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        // Eremu guztiak beteta badaude eta mezu elektronikoak baliozkoak badira, sartu datuak
+        DatuBasea.datuakSartu(gaia, deskribapena, jasotzailea, data, ordua);
+    }
+
+    /**
+     * Posta elektroniko formatua balioztatzeko metodoa.
+     * 
+     * @param email Baliozkotu beharreko posta elektronikoa.
+     * @return true posta elektronikoaren formatua baliozkoa bada, false bestela.
+     */
+    private boolean isValidEmail(String email) {
+        // Erabili adierazpen erregularra posta elektronikoaren formatua baliozkotzeko
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        return email.matches(emailRegex);
+    }
+
+    /**
+     * Aplikazioa exekutatzeko metodo nagusia.
+     * 
+     */
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                new erregistroaSartu();
+            }
+        });
+    }
+}
